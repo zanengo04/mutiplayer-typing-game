@@ -1,0 +1,7 @@
+.progressContainer{
+    background-color: rgb(196, 196, 196);
+    border-radius: 20px;
+    height: 30px;
+    width: 900px;
+    margin-top: 20px;
+}
