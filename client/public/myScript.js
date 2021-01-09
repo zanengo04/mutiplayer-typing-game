@@ -1,4 +1,3 @@
-const socket = io();
 const textDisplayElement = document.getElementById('textDisplay')
 const textInputElement = document.getElementById('textInput')
 const numWords = 20
