@@ -10,14 +10,34 @@ export default function ProgressBar() {
         opacity:"1",
         transition: "0.5s",
     }
+    const infoList = [
+       { room: "1",
+        user:[
+            {username:'zane',id:'0'},
+            {username:'zac',id:'1'},
+            {username:'zed',id:'2'}
+        ]
+        },
+    ]
+    /*infoList.map(infoItem=>{
+        console.log("This is room:", infoItem.room)
+        infoItem.user.map(user =>
+            console.log(`User #${user.id} with the username of ${user.username}`)
+        )})*/
     return (
         <>
-            <div className="progressContainer">
-                <div className="progressBar" style={progressBarStyle}/>
-            </div>
-            <div className="progressContainer">
-                <div className="progressBar2" style={progressBarStyle}/>
-            </div>
+            {        
+                infoList.map(infoItem=>{
+                    return <>
+                        <p key={infoItem.room}>{`Room: ${infoItem.room}`}</p>
+                        {infoItem.user.map(user =>
+                            <div className="progressContainer" key={user.id}>
+                                <div className={`progressBar${user.id}`} style={progressBarStyle} key={user.id}/>
+                            </div>
+                        )}
+                    </>
+                    })
+            }
         </>
     )
 }
