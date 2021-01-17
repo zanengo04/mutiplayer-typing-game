@@ -1,9 +1,12 @@
 import React from 'react'
-const refreshPage = ()=>{
-    window.location.reload();
- }
+
 export default function Reload() {
+    var loadCount = 0
+    function handleClick() {
+        loadCount +=1
+        console.log(loadCount)
+    }
     return (
-        <button className="btn" id='reload' onClick={refreshPage}><i className="fas fa-redo"></i></button>
+        <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
     )
 }

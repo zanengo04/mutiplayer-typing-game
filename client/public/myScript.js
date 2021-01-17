@@ -1,38 +1,7 @@
 const textDisplayElement = document.getElementById('textDisplay')
 const textInputElement = document.getElementById('textInput')
-const numWords = 20
-const api = 'https://random-word-api.herokuapp.com/word?number='
-const vocabulary = async () => {
-  try {
-    const {data} = await axios.get(`${api}${numWords}`)
-    return data
-  } catch (error) {
-    console.error(error)
-  }
-}
+const numWords = 5
 
-const fetchWords = async () =>{
-  try {
-    showWord(await vocabulary())
-  } catch (error) {
-    console.error(error)
-  }
-}
-//fetchWords()
-
-function showWord(words) {
-    
-    for (i=0; i< numWords; i++) {
-        const randIndex = Math.floor(Math.random() * words.length);
-        var content ="";
-        var span = document.createElement("span");
-        span.setAttribute('wordNum', i+1)
-        content += words[randIndex]+ ' ';
-        span.innerHTML=content
-        textDisplayElement.appendChild(span)
-
-    }
-}
 textInputElement.addEventListener('keydown', function (event) {
   if (textInputElement.value.length === 0 && event.which === 32) {
       event.preventDefault();

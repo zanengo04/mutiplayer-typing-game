@@ -1,31 +1,22 @@
 import React, {useState, useEffect} from 'react'
-import axios from 'axios'
+import socketClient  from "socket.io-client";
 
 import ProgressBar from './ProgressBar/ProgressBar'
 import Reload from './Reload'
+
+
+const SERVER = "http://127.0.0.1:5000";
+var socket = socketClient (SERVER, {transports: ['websocket']});
 export default function Typing() {
     const [vocabs, setVocabs] = useState([])
-    useEffect(()=>{
-        const fetchWords = async () =>{
-            try {
-                setVocabs(await vocabulary())
-            } catch (error) {
-              console.error(error)
-            }
-          }
-        fetchWords()
-    },[])
-    const numWords = 5
-    const api = 'https://random-word-api.herokuapp.com/word?number='
-    const vocabulary = async () => {
-    try {
-        const {data} = await axios.get(`${api}${numWords}`)
-        return data
-    } catch (error) {
-        console.error(error)
+    socket.on('vocabWords', vocabWords => setVocabs(vocabWords));
+    var loadCount = 0
+    function handleClick() {
+        loadCount +=1
+        console.log(loadCount)
+        socket.emit('loadCount', loadCount)
     }
-    }
-    return (
+        return (
         
         <div className="typingContainer">
             <script src="typing.js" defer></script>
@@ -37,7 +28,7 @@ export default function Typing() {
             </div>
             
             <input type='text' className="text-Input" id="textInput" autoFocus></input>
-            <Reload />
+            <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
             <ProgressBar />
             
         </div>
