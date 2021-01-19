@@ -2,20 +2,117 @@ import React, {useState, useEffect} from 'react'
 import socketClient  from "socket.io-client";
 
 import ProgressBar from './ProgressBar/ProgressBar'
-import Reload from './Reload'
 
 
 const SERVER = "http://127.0.0.1:5000";
 var socket = socketClient (SERVER, {transports: ['websocket']});
 export default function Typing() {
     const [vocabs, setVocabs] = useState([])
+    const [inputValue, setInputValue] = useState('')
+    const [className, setClassName] = useState([])
+    const [wordTyped, setWordTyped] = useState(0)
+    const [numWords, setNumWords] = useState(0)
+
     socket.on('vocabWords', vocabWords => setVocabs(vocabWords));
+    socket.on('numWords', numWords => setNumWords(numWords))
+
+    const [keyPressed, setKeyPressed] = useState(0);
+    useKeyPress("Backspace");
+    function useKeyPress(targetKey) {
+
+        function downHandler({ key }) {
+        if (key === targetKey) {
+            setKeyPressed(keyPressed + 1);
+        }
+        }
+        useEffect(() => {
+        window.addEventListener("keydown", downHandler);
+        return () => {
+            window.removeEventListener("keydown", downHandler);
+        };
+        }, [keyPressed]);
+    }
+
+    if(vocabs[wordTyped]) {
+        const arrayTyped = inputValue.split('')
+        
+        var currentWord = vocabs[wordTyped]
+        var keystroke = vocabs[wordTyped].length
+        let letterTyped = arrayTyped.length
+        var currentLetter = arrayTyped[letterTyped-1]
+        var backspaceCount = keyPressed
+        let characterScore = 0
+        var tempClass = false
+        var tempClassList = []
+
+        if(wordTyped === numWords-1 && currentWord === inputValue) {
+            setClassName([...className,'correct'])
+            setInputValue('')
+            setWordTyped(wordTyped+1)
+            tempClass = false
+        }
+        else if (currentWord+' ' === inputValue) {
+            setClassName([...className,'correct'])
+            setInputValue('')
+            setWordTyped(wordTyped+1)
+            tempClass = false
+        }
+        else if(currentLetter === ' ' && inputValue !== currentWord){
+            setClassName([...className,'wrong'])
+            setInputValue('')
+            setWordTyped(wordTyped+1)
+            tempClass = false
+        }else if (currentLetter === currentWord[letterTyped-1] && currentLetter) {
+            if (
+                (letterTyped===characterScore+1 && backspaceCount ===0)|| 
+                (characterScore ===2 && letterTyped ===1)|| 
+                (characterScore === letterTyped)) {
+                tempClass = ['correct']
+                tempClassList = [...className,'correct']
+                console.log('1')
+                console.log(tempClass)
+            }
+            if ( keystroke > letterTyped){
+                characterScore += 1
+                if (letterTyped ===1 && backspaceCount >0){
+                  characterScore =1
+                  backspaceCount =0
+                }
+                else if (characterScore >1 && backspaceCount >0) {
+                  characterScore -= 2
+                  if(letterTyped>characterScore){
+                    characterScore +=1
+                  }
+                  backspaceCount = 0
+                }
+            } else if (keystroke === letterTyped && backspaceCount ===0){
+              characterScore += 1
+                if (letterTyped ===0 && backspaceCount >0){
+                  characterScore =0
+                  backspaceCount =0
+                }
+                else if (characterScore >1 && backspaceCount >0) {
+                  backspaceCount = 0
+                }
+            }
+        }
+        else if (currentLetter) {
+            //setClassName([...className,'wrong'])
+            tempClass = ['wrong']
+            tempClassList = [...className,'wrong']
+            console.log(tempClass)
+        }
+    }
     var loadCount = 0
     function handleClick() {
         loadCount +=1
         console.log(loadCount)
-        socket.emit('loadCount', loadCount)
+        socket.emit('loadCount', loadCount)}
+
+    function handleChange(e) {
+        setInputValue(e.target.value)
     }
+    let wordProgress = wordTyped/numWords*100
         return (
         
         <div className="typingContainer">
@@ -23,13 +120,20 @@ export default function Typing() {
             <canvas id="myCanvas" width="1px" height='1px'></canvas>
             <div className="textBox" id='textBox'>
                 <div className="text-display" id= "textDisplay">
-                    {vocabs.map((word,index) => {return <span key={index}>{word} </span>})}
+                    {vocabs.map((word,index) => {return <span key={index} className={tempClass? tempClassList[index]: className[index]}>{word} </span>})}
                 </div>
             </div>
             
-            <input type='text' className="text-Input" id="textInput" autoFocus></input>
+            <input 
+                type='text' 
+                className="text-Input" 
+                id="textInput" 
+                autoFocus
+                value={inputValue}
+                onChange={handleChange}
+            ></input>
             <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
-            <ProgressBar />
+            <ProgressBar progress={wordProgress? wordProgress: 0}/>
             
         </div>
     )

@@ -1,10 +1,10 @@
 import React from 'react'
 import './ProgressBar.css'
 
-export default function ProgressBar() {
+export default function ProgressBar({progress}) {
     const progressBarStyle = {
         height: "100%",
-        width: "0%",
+        width: `${progress}%`,
         backgroundColor: "rgb(0, 0, 0)",
         borderRadius: "20px",
         opacity:"1",

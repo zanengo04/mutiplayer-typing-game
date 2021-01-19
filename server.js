@@ -21,15 +21,19 @@ const vocabulary = async () => {
         console.error(error)
     }
 }
-
+const vocabGen = async () => {
+    const vocab = await vocabulary()
+    console.log(vocab)
+    return vocab
+}
 const fetchWords = async () =>{
     try {
-        words = await vocabulary()
+        words = await vocabGen()
         io.on('connection', socket => {
             
             socket.emit('message','Welcome To Typing Game')
             io.emit('vocabWords', words)
-            console.log(words)
+            io.emit('numWords', numWords)
         })
     } catch (error) {
         console.error(error)
@@ -38,9 +42,11 @@ const fetchWords = async () =>{
 
 fetchWords()
 io.on('connection', socket => {
-    socket.on('loadCount', loadCount => {
+    socket.on('loadCount', async (loadCount) => {
         if (loadCount>0) {
-            fetchWords()
+            words = await vocabGen()
+            io.emit('vocabWords', words)
+            console.log(words)
             console.log(loadCount)
         }
     })
