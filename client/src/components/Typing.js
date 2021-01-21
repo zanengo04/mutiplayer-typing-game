@@ -32,87 +32,104 @@ export default function Typing() {
         };
         }, [keyPressed]);
     }
-
-    if(vocabs[wordTyped]) {
+    
         const arrayTyped = inputValue.split('')
         
         var currentWord = vocabs[wordTyped]
-        var keystroke = vocabs[wordTyped].length
+        var keystroke = currentWord && currentWord.length
         let letterTyped = arrayTyped.length
         var currentLetter = arrayTyped[letterTyped-1]
         var backspaceCount = keyPressed
-        let characterScore = 0
-        var tempClass = false
-        var tempClassList = []
+        const [characterScore, setCharacterScore] = useState(0)
+        const [tempClass,setTempClass] = useState(false)
+        const [tempClassList, setTempClassList] = useState([])
+        useEffect(() =>{
 
-        if(wordTyped === numWords-1 && currentWord === inputValue) {
-            setClassName([...className,'correct'])
-            setInputValue('')
-            setWordTyped(wordTyped+1)
-            tempClass = false
-        }
-        else if (currentWord+' ' === inputValue) {
-            setClassName([...className,'correct'])
-            setInputValue('')
-            setWordTyped(wordTyped+1)
-            tempClass = false
-        }
-        else if(currentLetter === ' ' && inputValue !== currentWord){
-            setClassName([...className,'wrong'])
-            setInputValue('')
-            setWordTyped(wordTyped+1)
-            tempClass = false
-        }else if (currentLetter === currentWord[letterTyped-1] && currentLetter) {
-            if (
-                (letterTyped===characterScore+1 && backspaceCount ===0)|| 
-                (characterScore ===2 && letterTyped ===1)|| 
-                (characterScore === letterTyped)) {
-                tempClass = ['correct']
-                tempClassList = [...className,'correct']
-                console.log('1')
-                console.log(tempClass)
+            if(currentWord){
+                if(currentLetter ===' ' && letterTyped === 1){
+                    setInputValue('')
+                }
+                else if(wordTyped === numWords-1 && currentWord === inputValue) {
+                    setClassName([...className,'correct'])
+                    setInputValue('')
+                    setWordTyped(wordTyped+1)
+                    setTempClass(false)
+                    setCharacterScore(0)
+                }
+                else if (currentWord+' ' === inputValue) {
+                    setClassName([...className,'correct'])
+                    setInputValue('')
+                    setWordTyped(wordTyped+1)
+                    setTempClass(false)
+                    setCharacterScore(0)
+                }
+                else if(currentLetter === ' ' && inputValue !== currentWord){
+                    setClassName([...className,'wrong'])
+                    setInputValue('')
+                    setWordTyped(wordTyped+1)
+                    setTempClass(false)
+                }else if (currentLetter === currentWord[letterTyped-1] && currentLetter) {
+                    console.log(letterTyped, characterScore, backspaceCount)
+                    if (
+                        (letterTyped===characterScore+1 && backspaceCount ===0)|| 
+                        (characterScore ===2 && letterTyped ===1)|| 
+                        (characterScore === letterTyped)) {
+                        setTempClass('correct')
+                        setTempClassList([...className,'correct'])
+                        console.log(tempClassList)
+                    }
+                    if ( keystroke > letterTyped){
+                        setCharacterScore(characterScore+1)
+                        console.log(characterScore)
+                        if (letterTyped ===1 && backspaceCount >0){
+                          setCharacterScore(1)
+                          backspaceCount =0
+                        }
+                        else if (characterScore >1 && backspaceCount >0) {
+                          setCharacterScore(characterScore-2)
+                          if(letterTyped>characterScore){
+                            setCharacterScore(characterScore+1)
+                          }
+                          backspaceCount = 0
+                        }
+                    } else if (keystroke === letterTyped && backspaceCount ===0){
+                        setCharacterScore(characterScore+1)
+                        if (letterTyped ===0 && backspaceCount >0){
+                            setCharacterScore(0)
+                            backspaceCount =0
+                        }
+                        else if (characterScore >1 && backspaceCount >0) {
+                          backspaceCount = 0
+                        }
+                    }
+                }
+                else if (currentLetter) {
+                    setTempClass('wrong')
+                    setTempClassList([...className,'wrong'])
+                    console.log(tempClassList)
+                }
             }
-            if ( keystroke > letterTyped){
-                characterScore += 1
-                if (letterTyped ===1 && backspaceCount >0){
-                  characterScore =1
-                  backspaceCount =0
-                }
-                else if (characterScore >1 && backspaceCount >0) {
-                  characterScore -= 2
-                  if(letterTyped>characterScore){
-                    characterScore +=1
-                  }
-                  backspaceCount = 0
-                }
-            } else if (keystroke === letterTyped && backspaceCount ===0){
-              characterScore += 1
-                if (letterTyped ===0 && backspaceCount >0){
-                  characterScore =0
-                  backspaceCount =0
-                }
-                else if (characterScore >1 && backspaceCount >0) {
-                  backspaceCount = 0
-                }
-            }
+            setWordProgress(wordTyped/numWords*100)
+        },[letterTyped])
+        window.addEventListener("keydown", () => {
+            
         }
-        else if (currentLetter) {
-            //setClassName([...className,'wrong'])
-            tempClass = ['wrong']
-            tempClassList = [...className,'wrong']
-            console.log(tempClass)
-        }
-    }
+        );
+    
     var loadCount = 0
     function handleClick() {
         loadCount +=1
         console.log(loadCount)
-        socket.emit('loadCount', loadCount)}
+        socket.emit('loadCount', loadCount)
+        setClassName([])
+        setWordProgress(0)
+    }
 
     function handleChange(e) {
         setInputValue(e.target.value)
     }
-    let wordProgress = wordTyped/numWords*100
+    const [wordProgress, setWordProgress] = useState(0)
+    
         return (
         
         <div className="typingContainer">
