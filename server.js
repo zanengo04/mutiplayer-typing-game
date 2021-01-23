@@ -12,6 +12,7 @@ server.listen(PORT, () => console.log(`Server running on Port ${PORT}`))
 
 var words =[]
 const numWords = 5
+var connectionCounter = 0
 const api = 'https://random-word-api.herokuapp.com/word?number='
 const vocabulary = async () => {
     try {
@@ -30,25 +31,16 @@ const fetchWords = async () =>{
     try {
         words = await vocabGen()
         io.on('connection', socket => {
-            
+            connectionCounter += 1
             socket.emit('message','Welcome To Typing Game')
-            io.emit('vocabWords', words)
             io.emit('numWords', numWords)
+            io.emit('vocabWords', words)
+            io.emit('connectionCounter',connectionCounter)
         })
+        io.on('disconnection', () => {connectionCounter -=1})
     } catch (error) {
         console.error(error)
     }
 }
 
 fetchWords()
-io.on('connection', socket => {
-    socket.on('loadCount', async (loadCount) => {
-        if (loadCount>0) {
-            words = await vocabGen()
-            io.emit('vocabWords', words)
-            console.log(words)
-            console.log(loadCount)
-        }
-    })
-
-})

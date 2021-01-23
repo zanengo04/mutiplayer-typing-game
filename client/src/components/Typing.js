@@ -14,6 +14,7 @@ export default function Typing() {
     const [numWords, setNumWords] = useState(0)
     const [wordProgress, setWordProgress] = useState(0)
     const [backSpaceCount, setBackSpaceCount] = useState(0);
+    const [connectionCounter, setConnectionCounter] = useState(0);
     const arrayTyped = inputValue.split('')
     
     var currentWord = vocabs[wordTyped]
@@ -21,6 +22,25 @@ export default function Typing() {
     var currentLetter = arrayTyped[letterTyped-1]
     const [tempClass,setTempClass] = useState(false)
     const [tempClassList, setTempClassList] = useState([])
+
+    const nameList = ['zane','zac','zed']
+    const users = [];
+    const infoList =[]
+    function createObject() {
+        for (var i = 0; i < nameList.length; i++) {
+            var user = new Object()
+            user.username = nameList[i];
+            user.id =i+1
+            users.push(user)
+        }
+        console.log(users)
+        var info = new Object()
+        info.room = '1'
+        info.user= users
+        infoList.push(info)
+        console.log(infoList)
+    }
+    createObject()
 
     useKeyPress("Backspace");
     function useKeyPress(targetKey) {
@@ -40,7 +60,8 @@ export default function Typing() {
 
     socket.on('vocabWords', vocabWords => setVocabs(vocabWords));
     socket.on('numWords', numWords => setNumWords(numWords))
-
+    socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
+    console.log(connectionCounter)
 
         useEffect(() =>{
 
@@ -122,7 +143,7 @@ export default function Typing() {
                 onChange={handleChange}
             ></input>
             <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
-            <ProgressBar progress={wordProgress}/>
+            <ProgressBar progress={wordProgress} infoList={infoList}/>
             
         </div>
     )

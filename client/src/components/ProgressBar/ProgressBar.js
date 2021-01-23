@@ -1,7 +1,7 @@
 import React from 'react'
 import './ProgressBar.css'
 
-export default function ProgressBar({progress}) {
+export default function ProgressBar({progress, infoList}) {
     const progressBarStyle = {
         height: "100%",
         width: `${progress}%`,
@@ -10,15 +10,7 @@ export default function ProgressBar({progress}) {
         opacity:"1",
         transition: "0.5s",
     }
-    const infoList = [
-       { room: "1",
-        user:[
-            {username:'zane',id:'0'},
-            {username:'zac',id:'1'},
-            {username:'zed',id:'2'}
-        ]
-        },
-    ]
+
     /*infoList.map(infoItem=>{
         console.log("This is room:", infoItem.room)
         infoItem.user.map(user =>
