@@ -7,6 +7,7 @@ import ProgressBar from './ProgressBar/ProgressBar'
 const SERVER = "http://127.0.0.1:5000";
 var socket = socketClient (SERVER, {transports: ['websocket']});
 export default function Typing() {
+    const [started, setStarted] = useState(false)
     const [vocabs, setVocabs] = useState([])
     const [inputValue, setInputValue] = useState('')
     const [className, setClassName] = useState([])
@@ -15,33 +16,48 @@ export default function Typing() {
     const [wordProgress, setWordProgress] = useState(0)
     const [backSpaceCount, setBackSpaceCount] = useState(0);
     const [connectionCounter, setConnectionCounter] = useState(0);
+    const [userID, setUserID] = useState(false)
+    var reloaded
+
     const arrayTyped = inputValue.split('')
-    
     var currentWord = vocabs[wordTyped]
     let letterTyped = arrayTyped.length
     var currentLetter = arrayTyped[letterTyped-1]
     const [tempClass,setTempClass] = useState(false)
     const [tempClassList, setTempClassList] = useState([])
-
-    const nameList = ['zane','zac','zed']
+    
+    const nameList = ['zane','zac']
     const users = [];
     const infoList =[]
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+          //if (!reloaded){
+            //window.location.reload();
+          //}
+          console.log(connectionCounter)
+        }, 1000);
+        return () => clearTimeout(timer);
+      }, []);
     function createObject() {
-        for (var i = 0; i < nameList.length; i++) {
+        for (var i = 0; i < connectionCounter; i++) {
             var user = new Object()
             user.username = nameList[i];
-            user.id =i+1
+            user.progress=wordProgress
             users.push(user)
         }
-        console.log(users)
         var info = new Object()
         info.room = '1'
         info.user= users
         infoList.push(info)
-        console.log(infoList)
+        infoList[0].user[connectionCounter-1].id = userID
+        console.log(infoList[0].user)
     }
-    createObject()
+    if (connectionCounter){
 
+        createObject()
+    }
+    console.log(connectionCounter)
     useKeyPress("Backspace");
     function useKeyPress(targetKey) {
 
@@ -57,56 +73,57 @@ export default function Typing() {
         };
         }, [backSpaceCount]);
     }
-
-    socket.on('vocabWords', vocabWords => setVocabs(vocabWords));
+    
+    socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
+    socket.on('reloaded', load => reloaded =load);
     socket.on('numWords', numWords => setNumWords(numWords))
     socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
-    console.log(connectionCounter)
-
-        useEffect(() =>{
-
-            if(currentWord){
-                if(currentLetter ===' ' && letterTyped === 1){
-                    setInputValue('')
-                }
-                else if(letterTyped ===0 && backSpaceCount>0){
-                    setTempClass(false)
-                    setTempClassList([])
-                    setBackSpaceCount(0)
-                }
-                else if(wordTyped === numWords-1 && currentWord === inputValue) {
-                    setClassName([...className,'correct'])
-                    setInputValue('')
-                    setWordTyped(wordTyped+1)
-                    setTempClass(false)
-                }
-                else if (currentWord+' ' === inputValue) {
-                    setClassName([...className,'correct'])
-                    setInputValue('')
-                    setWordTyped(wordTyped+1)
-                    setTempClass(false)
-                }
-                else if(currentLetter === ' ' && inputValue !== currentWord){
-                    setClassName([...className,'wrong'])
-                    setInputValue('')
-                    setWordTyped(wordTyped+1)
-                    setTempClass(false)
-                }else if (inputValue === currentWord.substring(0,letterTyped) && letterTyped !==0) {
-                    setTempClass('correct')
-                    setTempClassList([...className,'correct'])
-                }
-                else if (currentLetter && letterTyped !==0) {
-                    setTempClass('wrong')
-                    setTempClassList([...className,'wrong'])
-                }
-            }
-            setWordProgress(wordTyped/numWords*100)
-        },[letterTyped])
-        window.addEventListener("keydown", () => {
+    socket.on('connection', () =>{
+        setUserID(socket.id)
+    })
+    //socket.emit('username',username)
+    //socket.on('usernameList',usernames)
+    useEffect(() =>{
+        if(currentWord){
             
+            if(currentLetter ===' ' && letterTyped === 1){
+                setInputValue('')
+            }
+            else if(letterTyped ===0 && backSpaceCount>0){
+                setTempClass(false)
+                setTempClassList([])
+                setBackSpaceCount(0)
+            }
+            else if(wordTyped === numWords-1 && currentWord === inputValue) {
+                setClassName([...className,'correct'])
+                setInputValue('')
+                setWordTyped(wordTyped+1)
+                setTempClass(false)
+            }
+            else if (currentWord+' ' === inputValue) {
+                setClassName([...className,'correct'])
+                setInputValue('')
+                setWordTyped(wordTyped+1)
+                setTempClass(false)
+            }
+            else if(currentLetter === ' ' && inputValue !== currentWord){
+                setClassName([...className,'wrong'])
+                setInputValue('')
+                setWordTyped(wordTyped+1)
+                setTempClass(false)
+            }else if (inputValue === currentWord.substring(0,letterTyped) && letterTyped !==0) {
+                setTempClass('correct')
+                setTempClassList([...className,'correct'])
+            }
+            else if (currentLetter && letterTyped !==0) {
+                setTempClass('wrong')
+                setTempClassList([...className,'wrong'])
+            }
         }
-        );
-    
+        if(numWords){
+            setWordProgress(wordTyped/numWords*100)
+        }
+    },[letterTyped])
     var loadCount = 0
     function handleClick() {
         loadCount +=1
@@ -117,15 +134,20 @@ export default function Typing() {
         setInputValue('')
         setWordTyped(0)
     }
-    
+    useEffect(() =>{
+
+        if(vocabs.length) {
+            setStarted(true)
+        }
+    },[vocabs.length])
     function handleChange(e) {
         setInputValue(e.target.value)
     }
-
-    
         return (
         
         <div className="typingContainer">
+            {!started && <button id='start' onClick={handleClick}>Start Game</button>}
+            
             <script src="typing.js" defer></script>
             <canvas id="myCanvas" width="1px" height='1px'></canvas>
             <div className="textBox" id='textBox'>
@@ -142,6 +164,7 @@ export default function Typing() {
                 value={inputValue}
                 onChange={handleChange}
             ></input>
+            
             <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
             <ProgressBar progress={wordProgress} infoList={infoList}/>
             
