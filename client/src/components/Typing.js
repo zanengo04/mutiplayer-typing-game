@@ -29,6 +29,7 @@ export default function Typing() {
     const nameList = ['zane','zac']
     const users = [];
     const infoList =[]
+    console.log(connectionCounter)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -128,11 +129,14 @@ export default function Typing() {
     function handleClick() {
         loadCount +=1
         console.log(loadCount)
-        socket.emit('loadCount', loadCount)
         setClassName([])
         setWordProgress(0)
         setInputValue('')
         setWordTyped(0)
+        socket.emit('loadCount', loadCount)
+    }
+    function handleStart(){
+        window.location.reload();
     }
     useEffect(() =>{
 
@@ -146,7 +150,7 @@ export default function Typing() {
         return (
         
         <div className="typingContainer">
-            {!started && <button id='start' onClick={handleClick}>Start Game</button>}
+            {!started && <button id='start' onClick={handleStart}>Start Game</button>}
             
             <script src="typing.js" defer></script>
             <canvas id="myCanvas" width="1px" height='1px'></canvas>

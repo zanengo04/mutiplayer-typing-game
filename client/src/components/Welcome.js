@@ -21,7 +21,6 @@ export default function Welcome() {
     function handleRoomName(e) {
       setRoomName(e.target.value)
     }
-  console.log(username, roomName)
     return (
         <div>
             <p id='welcome'>Welcome to Typing Game</p>

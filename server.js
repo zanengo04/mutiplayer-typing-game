@@ -14,6 +14,7 @@ var words =[]
 var usernames=[]
 const numWords = 5
 var connectionCounter = 0
+var reloaded =true
 const api = 'https://random-word-api.herokuapp.com/word?number='
 const vocabulary = async () => {
     try {
@@ -35,6 +36,7 @@ const fetchWords = async () =>{
             connectionCounter += 1
             io.emit('numWords', numWords)
             io.emit('vocabWords', words)
+            io.emit('reloaded', reloaded)
             io.emit('connectionCounter',connectionCounter)
             socket.on('disconnect', () => {
                 connectionCounter -=1;  
