@@ -1,7 +1,7 @@
 export default function usernameReducer(state = '', action){
     switch (action.type){
         case 'setUsername':
-            return 'a'
+            return action.payload
         default:
             return state
     }

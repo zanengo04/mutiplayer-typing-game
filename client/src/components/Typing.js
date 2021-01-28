@@ -1,12 +1,15 @@
 import React, {useState, useEffect} from 'react'
 import socketClient  from "socket.io-client";
+import {useSelector, useDispatch} from 'react-redux';
 
 import ProgressBar from './ProgressBar/ProgressBar'
+import {setInfo, setProgress} from '../actions'
 
 
-const SERVER = "http://127.0.0.1:5000";
-var socket = socketClient (SERVER, {transports: ['websocket']});
 export default function Typing() {
+    const dispatch = useDispatch()
+    const username = useSelector(state=> state.username)
+    const room = useSelector(state=> state.room)
     const [started, setStarted] = useState(false)
     const [vocabs, setVocabs] = useState([])
     const [inputValue, setInputValue] = useState('')
@@ -18,7 +21,6 @@ export default function Typing() {
     const [connectionCounter, setConnectionCounter] = useState(0);
     const [userID, setUserID] = useState(false)
     var reloaded
-
     const arrayTyped = inputValue.split('')
     var currentWord = vocabs[wordTyped]
     let letterTyped = arrayTyped.length
@@ -29,17 +31,22 @@ export default function Typing() {
     const nameList = ['zane','zac']
     const users = [];
     const infoList =[]
-    console.log(connectionCounter)
+    var usernameArray = []
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-          //if (!reloaded){
-            //window.location.reload();
-          //}
-          console.log(connectionCounter)
-        }, 1000);
-        return () => clearTimeout(timer);
-      }, []);
+        const SERVER = "http://127.0.0.1:5000";
+        var socket = socketClient (SERVER, {transports: ['websocket']});
+        socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
+        socket.on('reloaded', load => reloaded =load);
+        socket.on('numWords', numWords => setNumWords(numWords))
+        socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
+        socket.on('connect', () =>{
+            setUserID(socket.id)
+        })
+        socket.emit('username', [username, room, userID,wordProgress])
+        socket.on('getUsername', usernameList => dispatch(setInfo(usernameList)))
+    }, []);
+    console.log(usernameArray)
     function createObject() {
         for (var i = 0; i < connectionCounter; i++) {
             var user = new Object()
@@ -52,13 +59,10 @@ export default function Typing() {
         info.user= users
         infoList.push(info)
         infoList[0].user[connectionCounter-1].id = userID
-        console.log(infoList[0].user)
     }
     if (connectionCounter){
-
         createObject()
     }
-    console.log(connectionCounter)
     useKeyPress("Backspace");
     function useKeyPress(targetKey) {
 
@@ -74,19 +78,12 @@ export default function Typing() {
         };
         }, [backSpaceCount]);
     }
-    
-    socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
-    socket.on('reloaded', load => reloaded =load);
-    socket.on('numWords', numWords => setNumWords(numWords))
-    socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
-    socket.on('connection', () =>{
-        setUserID(socket.id)
-    })
+
     //socket.emit('username',username)
     //socket.on('usernameList',usernames)
     useEffect(() =>{
+        
         if(currentWord){
-            
             if(currentLetter ===' ' && letterTyped === 1){
                 setInputValue('')
             }
@@ -125,6 +122,16 @@ export default function Typing() {
             setWordProgress(wordTyped/numWords*100)
         }
     },[letterTyped])
+
+    useEffect(() => {
+        
+        if (!wordProgress){
+        }
+        else{
+            dispatch(setProgress(wordProgress))
+        }
+    }, [wordProgress])
+
     var loadCount = 0
     function handleClick() {
         loadCount +=1
@@ -133,13 +140,14 @@ export default function Typing() {
         setWordProgress(0)
         setInputValue('')
         setWordTyped(0)
+        const SERVER = "http://127.0.0.1:5000";
+        var socket = socketClient (SERVER, {transports: ['websocket']});
         socket.emit('loadCount', loadCount)
     }
     function handleStart(){
         window.location.reload();
     }
     useEffect(() =>{
-
         if(vocabs.length) {
             setStarted(true)
         }

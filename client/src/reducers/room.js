@@ -1,7 +1,7 @@
 export default function roomReducer(state = '', action){
     switch (action.type){
         case 'setRoom':
-            return 'a'
+            return action.payload
         default:
             return state
     }
