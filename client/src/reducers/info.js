@@ -3,15 +3,17 @@ export default function infoReducer(state = [], action){
         case 'setInfo':
             return state= [...state, action.payload]
         case 'setProgress':
-            const i = 1;
+            const i = 2;
             console.log(i)
-            var arrayLength = [...state][0].length
-            var currentList = [...state][0][0].slice(0,3)
+            var arrayLength = state[0].length
+            var currentList = [...state][0][i].slice(0,3)
             var listWithProgress = [...currentList, action.payload]
+            var finalList = []
+            var firstHalf = [...state][0].slice(0,i)
+            var secondHalf = [...state][0].slice(i+1,arrayLength)
+            finalList.push(...firstHalf, listWithProgress,...secondHalf)
             return state = [
-                [...state][0].slice(0,i),
-                [listWithProgress],
-                [...state][0].slice(i,arrayLength)
+                finalList
             ]
             
         default:

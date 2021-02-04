@@ -35,6 +35,7 @@ const fetchWords = async () =>{
         words = await vocabGen()
         io.on('connection', socket => {
             connectionCounter += 1
+            io.emit("broadcast", connectionCounter);
             io.emit('numWords', numWords)
             io.emit('vocabWords', words)
             io.emit('reloaded', reloaded)
@@ -55,9 +56,19 @@ const fetchWords = async () =>{
             })
             socket.on('isClicked', isClicked => console.log(isClicked))
             socket.on('username', username => {
+                const i = 1
                 usernameList.push(username)
                 console.log(usernameList)
-                socket.emit('getUsername', usernameList)
+                io.emit('getUsername', usernameList)
+                io.emit('getInfo', usernameList)
+                socket.on('updateInfo', info => {
+                    beforeEditArray = [...usernameList.slice(0,i)]
+                    afterEditArray = [...usernameList.slice(i+1,usernameList.length)]
+                    editArray = [...usernameList[0].slice(0,2), ...info]
+                    usernameList = [...beforeEditArray, editArray, ...afterEditArray]
+                    console.log(usernameList)
+                    io.emit('getUpdatedInfo', usernameList)
+                })
             })
         })
     } catch (error) {
