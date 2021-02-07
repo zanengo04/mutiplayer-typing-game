@@ -4,14 +4,15 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import ProgressBar from './ProgressBar/ProgressBar'
 import {setInfo, setProgress} from '../actions'
-const SERVER = "http://127.0.0.1:5000";
-var socket = socketClient (SERVER, {transports: ['websocket']});
+
 
 export default function Typing() {
     const dispatch = useDispatch()
     const username = useSelector(state=> state.username)
     const room = useSelector(state=> state.room)
     const info = useSelector (state => state.info)
+    const [infoListLength, setInfoListLength] = useState(0)
+    const [idList, setIdList] = useState([])
     const [started, setStarted] = useState(false)
     const [vocabs, setVocabs] = useState([])
     const [inputValue, setInputValue] = useState('')
@@ -35,29 +36,56 @@ export default function Typing() {
     const users = [];
     const infoList =[]
     useEffect(() => {
-        if (!isConnected){
-            setIsConnected(true)
-            socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
-            socket.on('reloaded', load => reloaded =load);
-            socket.on('numWords', numWords => setNumWords(numWords))
-            socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
-            socket.on('connect', () =>{
-                setUserID(socket.id)
-            })
-            socket.on('getUsername', usernameList => dispatch(setInfo(usernameList)))
-            socket.on('broadcast', connectionCounter => console.log(`Total number of client: ${connectionCounter}`))
+        if (!isConnected)
+            {
+                const SERVER = "http://127.0.0.1:5000";
+                var socket = socketClient (SERVER, {transports: ['websocket']});
+                setIsConnected(true)
+                socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
+                socket.on('reloaded', load => reloaded =load);
+                socket.on('numWords', numWords => setNumWords(numWords))
+                socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
+                if (!isConnected){
+                    socket.on('connect', () =>{
+                        setUserID(socket.id)
+                        setIdList([...idList, socket.id])
+                    })
+                }
+                socket.on('broadcast', connectionCounter => console.log(`Total number of client: ${connectionCounter}`))
+                socket.emit('updateInfo', [userID,wordProgress])
+                socket.emit('username', [username, room, userID,wordProgress])
+                socket.on('getUsername', username => {
+                    dispatch(setInfo(username))
+                    setInfoListLength(username.length)
+                })
+
+                return () => {
+                    socket.close()
+            }
         }
         else{
-            socket.emit('updateInfo', [userID,wordProgress])
-            socket.on('getUpdatedInfo', usernameList => console.log(usernameList))
+            const SERVER = "http://127.0.0.1:5000";
+            var socket = socketClient (SERVER, {transports: ['websocket']});
+            socket.on('connect', () =>{
+                setIdList([...idList, socket.id])
+                console.log(idList)
+            })
+            socket.emit('username', [username, room, idList[0],wordProgress])
+            socket.emit('progressUpdate', [idList[0], wordProgress])
+            socket.on('getUsername', username => {
+                dispatch(setInfo(username))
+                setInfoListLength(username.length)
+            })
         }
     }, [wordProgress]);
-    useEffect(() =>{
-        socket.emit('username', [username, room, userID,wordProgress])
+    useEffect(() => {
 
-    }, [userID])
+        if (wordProgress){
+            //dispatch(setProgress(wordProgress))
+        }
+    }, [wordProgress])
     function createObject() {
-        for (var i = 0; i < connectionCounter; i++) {
+        for (var i = 0; i < infoListLength; i++) {
             var user = new Object()
             user.username = nameList[i];
             user.progress=wordProgress
@@ -67,9 +95,9 @@ export default function Typing() {
         info.room = '1'
         info.user= users
         infoList.push(info)
-        infoList[0].user[connectionCounter-1].id = userID
+        infoList[0].user[infoListLength-1].id = userID
     }
-    if (connectionCounter){
+    if (infoListLength){
         createObject()
     }
     useKeyPress("Backspace");
@@ -147,6 +175,9 @@ export default function Typing() {
     }
     function handleStart(){
         window.location.reload();
+        const SERVER = "http://127.0.0.1:5000";
+        var socket = socketClient (SERVER, {transports: ['websocket']});
+        socket.emit('startCount', 1)
     }
     useEffect(() =>{
         if(vocabs.length) {

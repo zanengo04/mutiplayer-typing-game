@@ -16,6 +16,7 @@ const numWords = 5
 var connectionCounter = 0
 var reloaded =true
 var usernameList = []
+var idList = []
 const api = 'https://random-word-api.herokuapp.com/word?number='
 const vocabulary = async () => {
     try {
@@ -57,7 +58,12 @@ const fetchWords = async () =>{
             socket.on('isClicked', isClicked => console.log(isClicked))
             socket.on('username', username => {
                 const i = 1
-                usernameList.push(username)
+                //if progress is 0 then push id
+                if (!username[3]){
+                    idList.push(socket.id)
+                    currentInfo = [...username.slice(0,2), socket.id, username[3]]
+                    usernameList.push(currentInfo)
+                }
                 console.log(usernameList)
                 io.emit('getUsername', usernameList)
                 io.emit('getInfo', usernameList)
@@ -69,6 +75,23 @@ const fetchWords = async () =>{
                     console.log(usernameList)
                     io.emit('getUpdatedInfo', usernameList)
                 })
+                socket.on('progressUpdate', progress => {
+                    var filteredList = idList.map(id => usernameList.filter(info => info[2] === id))
+                    var finalList = []
+                    var i
+                    for (i = 0;i<filteredList.length; i++){
+                    finalList.push(filteredList[i][0])
+                    }
+                    for (i=0; i<finalList.length; i++){
+                    if(finalList[i][2] === progress[0]){
+                        finalList[i] = [...finalList[i].slice(0,3), progress[1]]
+                    }
+                    }
+                    usernameList = []
+                    usernameList.push(...finalList)
+                    io.emit('getUsername', usernameList)
+                })
+
             })
         })
     } catch (error) {

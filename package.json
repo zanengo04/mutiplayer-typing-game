@@ -20,6 +20,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "express": "^4.17.1",
+    "redux": "^4.0.5",
     "redux-socket-server": "^0.1.37",
     "socket.io": "^3.1.0"
   },
