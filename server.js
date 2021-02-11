@@ -15,8 +15,9 @@ var usernames=[]
 const numWords = 5
 var connectionCounter = 0
 var reloaded =true
-var usernameList = []
+var infoList = []
 var idList = []
+var usernameList= []
 const api = 'https://random-word-api.herokuapp.com/word?number='
 const vocabulary = async () => {
     try {
@@ -62,21 +63,22 @@ const fetchWords = async () =>{
                 if (!username[3]){
                     idList.push(socket.id)
                     currentInfo = [...username.slice(0,2), socket.id, username[3]]
-                    usernameList.push(currentInfo)
+                    infoList.push(currentInfo)
+                    usernameList.push(currentInfo[0])
                 }
-                console.log(usernameList)
-                io.emit('getUsername', usernameList)
-                io.emit('getInfo', usernameList)
+                io.emit('getUsername', infoList)
+                io.emit('getUsernameList', usernameList)
+                io.emit('getInfo', infoList)
                 socket.on('updateInfo', info => {
-                    beforeEditArray = [...usernameList.slice(0,i)]
-                    afterEditArray = [...usernameList.slice(i+1,usernameList.length)]
-                    editArray = [...usernameList[0].slice(0,2), ...info]
-                    usernameList = [...beforeEditArray, editArray, ...afterEditArray]
-                    console.log(usernameList)
-                    io.emit('getUpdatedInfo', usernameList)
+                    beforeEditArray = [...infoList.slice(0,i)]
+                    afterEditArray = [...infoList.slice(i+1,infoList.length)]
+                    editArray = [...infoList[0].slice(0,2), ...info]
+                    infoList = [...beforeEditArray, editArray, ...afterEditArray]
+                    console.log(infoList)
+                    io.emit('getUpdatedInfo', infoList)
                 })
                 socket.on('progressUpdate', progress => {
-                    var filteredList = idList.map(id => usernameList.filter(info => info[2] === id))
+                    var filteredList = idList.map(id => infoList.filter(info => info[2] === id))
                     var finalList = []
                     var i
                     for (i = 0;i<filteredList.length; i++){
@@ -87,9 +89,10 @@ const fetchWords = async () =>{
                         finalList[i] = [...finalList[i].slice(0,3), progress[1]]
                     }
                     }
-                    usernameList = []
-                    usernameList.push(...finalList)
-                    io.emit('getUsername', usernameList)
+                    infoList = []
+                    infoList.push(...finalList)
+                    io.emit('getUsername', infoList)
+                    console.log(infoList)
                 })
 
             })
@@ -100,4 +103,4 @@ const fetchWords = async () =>{
 }
 
 fetchWords()
-console.log(usernameList)
+console.log(infoList)

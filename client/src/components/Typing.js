@@ -3,6 +3,7 @@ import socketClient  from "socket.io-client";
 import {useSelector, useDispatch} from 'react-redux';
 
 import ProgressBar from './ProgressBar/ProgressBar'
+import ProgressBar2 from './ProgressBar/ProgressBar2'
 import {setInfo, setProgress} from '../actions'
 
 
@@ -12,6 +13,7 @@ export default function Typing() {
     const room = useSelector(state=> state.room)
     const info = useSelector (state => state.info)
     const [infoListLength, setInfoListLength] = useState(0)
+    const [data, setData] = useState([])
     const [idList, setIdList] = useState([])
     const [started, setStarted] = useState(false)
     const [vocabs, setVocabs] = useState([])
@@ -31,8 +33,8 @@ export default function Typing() {
     const [tempClass,setTempClass] = useState(false)
     const [tempClassList, setTempClassList] = useState([])
     const [isConnected, setIsConnected] = useState(false)
+    const[usernameList, setUsernameList] = useState([])
 
-    const nameList = ['zane','zac']
     const users = [];
     const infoList =[]
     useEffect(() => {
@@ -57,8 +59,9 @@ export default function Typing() {
                 socket.on('getUsername', username => {
                     dispatch(setInfo(username))
                     setInfoListLength(username.length)
+                    setData(username)
                 })
-
+                socket.on('getUsernameList', username => setUsernameList(...usernameList, username))
                 return () => {
                     socket.close()
             }
@@ -68,34 +71,33 @@ export default function Typing() {
             var socket = socketClient (SERVER, {transports: ['websocket']});
             socket.on('connect', () =>{
                 setIdList([...idList, socket.id])
-                console.log(idList)
             })
             socket.emit('username', [username, room, idList[0],wordProgress])
             socket.emit('progressUpdate', [idList[0], wordProgress])
             socket.on('getUsername', username => {
                 dispatch(setInfo(username))
                 setInfoListLength(username.length)
+                setData(username)
             })
+            const progressIncrement = 1/numWords*100
+            console.log(data[0][3] + progressIncrement)
+
         }
     }, [wordProgress]);
-    useEffect(() => {
-
-        if (wordProgress){
-            //dispatch(setProgress(wordProgress))
-        }
-    }, [wordProgress])
     function createObject() {
-        for (var i = 0; i < infoListLength; i++) {
-            var user = new Object()
-            user.username = nameList[i];
-            user.progress=wordProgress
-            users.push(user)
+        if (usernameList.length){
+            for (var i = 0; i < infoListLength; i++) {
+                var user = new Object()
+                user.username = usernameList[i];
+                user.progress=wordProgress
+                users.push(user)
+            }
+            var info = new Object()
+            info.room = '1'
+            info.user= users
+            infoList.push(info)
+            infoList[0].user[infoListLength-1].id = userID
         }
-        var info = new Object()
-        info.room = '1'
-        info.user= users
-        infoList.push(info)
-        infoList[0].user[infoListLength-1].id = userID
     }
     if (infoListLength){
         createObject()
@@ -210,7 +212,8 @@ export default function Typing() {
             ></input>
             
             <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
-            <ProgressBar progress={wordProgress} infoList={infoList}/>
+            
+            <ProgressBar2 infoList={data} />
             
         </div>
     )
