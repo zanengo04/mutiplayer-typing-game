@@ -106,3 +106,31 @@ div, html {
   border: none;
   cursor: pointer;
 }
+
+h1{
+  text-align: center;
+  padding-top: 50px;
+}
+.button{
+  transition: background-color 0.3s ease 0s;
+  border-radius: 25px;
+  color:black;
+  border: 2.5px solid black;
+  cursor: pointer;
+  background-color: white;
+  text-align: center;
+  text-decoration: none;
+  margin: 10px;
+  font-weight: bold;
+  width: 100px;
+  height: 40px;
+}
+.buttonContainer{
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+.button:hover{
+  background-color: rgb(110, 182, 253);
+}

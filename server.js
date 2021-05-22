@@ -18,6 +18,7 @@ var reloaded =true
 var infoList = []
 var idList = []
 var usernameList= []
+var loadCount = 0
 const api = 'https://random-word-api.herokuapp.com/word?number='
 const vocabulary = async () => {
     try {
@@ -53,7 +54,6 @@ const fetchWords = async () =>{
                     io.emit('vocabWords', words)
                     connectionCounter -= 1
                     console.log(words)
-                    console.log(loadCount)
                 }
             })
             socket.on('isClicked', isClicked => console.log(isClicked))
@@ -69,6 +69,8 @@ const fetchWords = async () =>{
                 io.emit('getUsername', infoList)
                 io.emit('getUsernameList', usernameList)
                 io.emit('getInfo', infoList)
+                
+                console.log(infoList)
                 socket.on('updateInfo', info => {
                     beforeEditArray = [...infoList.slice(0,i)]
                     afterEditArray = [...infoList.slice(i+1,infoList.length)]
@@ -103,4 +105,4 @@ const fetchWords = async () =>{
 }
 
 fetchWords()
-console.log(infoList)
+console.log(usernameList)

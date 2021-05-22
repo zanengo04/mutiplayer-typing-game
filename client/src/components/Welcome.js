@@ -6,7 +6,6 @@ import TextField from '@material-ui/core/TextField';
 import {Link} from 'react-router-dom'
 import {setUsername, setRoom} from '../actions'
 
-
 const useStyles = makeStyles((theme) => ({
   root: {
     '& > *': {
@@ -40,7 +39,9 @@ export default function Welcome() {
                       onChange={(e) => dispatch(setRoom(e.target.value))}
                     />
                 </form>
-                <button><Link to={'/game'}>{'Submit'}</Link></button>
+                <div className="buttonContainer">
+                    <Link to={'/game'} className="button" style={{textDecoration:"none"}}>{'Submit'}</Link>  
+                </div>
             </div>
         </div>
     )

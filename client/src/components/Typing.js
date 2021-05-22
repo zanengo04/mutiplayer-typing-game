@@ -2,16 +2,15 @@ import React, {useState, useEffect} from 'react'
 import socketClient  from "socket.io-client";
 import {useSelector, useDispatch} from 'react-redux';
 
-import ProgressBar from './ProgressBar/ProgressBar'
 import ProgressBar2 from './ProgressBar/ProgressBar2'
 import {setInfo, setProgress} from '../actions'
-
 
 export default function Typing() {
     const dispatch = useDispatch()
     const username = useSelector(state=> state.username)
     const room = useSelector(state=> state.room)
-    const info = useSelector (state => state.info)
+    const [currentRoom,setCurrentRoom] = useState(false)
+    const info = useSelector(state =>state.info)
     const [infoListLength, setInfoListLength] = useState(0)
     const [data, setData] = useState([])
     const [idList, setIdList] = useState([])
@@ -23,9 +22,17 @@ export default function Typing() {
     const [numWords, setNumWords] = useState(0)
     const [wordProgress, setWordProgress] = useState(0)
     const [backSpaceCount, setBackSpaceCount] = useState(0);
-    const [connectionCounter, setConnectionCounter] = useState(0);
     const [userID, setUserID] = useState(false)
-    var reloaded
+    var loadCount
+    useEffect(()=>{
+        if(info[0]){
+            for (var i=0; i<info[0].length; i++){
+                if (info[0][i][2] === userID){
+                    setCurrentRoom(info[0][i][1])
+                }
+            }
+        }
+    },[info.length])
     const arrayTyped = inputValue.split('')
     var currentWord = vocabs[wordTyped]
     let letterTyped = arrayTyped.length
@@ -44,16 +51,13 @@ export default function Typing() {
                 var socket = socketClient (SERVER, {transports: ['websocket']});
                 setIsConnected(true)
                 socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
-                socket.on('reloaded', load => reloaded =load);
                 socket.on('numWords', numWords => setNumWords(numWords))
-                socket.on('connectionCounter', connectionCounter => setConnectionCounter(connectionCounter))
                 if (!isConnected){
                     socket.on('connect', () =>{
                         setUserID(socket.id)
                         setIdList([...idList, socket.id])
                     })
                 }
-                socket.on('broadcast', connectionCounter => console.log(`Total number of client: ${connectionCounter}`))
                 socket.emit('updateInfo', [userID,wordProgress])
                 socket.emit('username', [username, room, userID,wordProgress])
                 socket.on('getUsername', username => {
@@ -62,11 +66,12 @@ export default function Typing() {
                     setData(username)
                 })
                 socket.on('getUsernameList', username => setUsernameList(...usernameList, username))
+                socket.on('loadCount', count => console.log(count))
                 return () => {
                     socket.close()
-            }
+                }
         }
-        else{
+        else if (isConnected && !loadCount){
             const SERVER = "http://127.0.0.1:5000";
             var socket = socketClient (SERVER, {transports: ['websocket']});
             socket.on('connect', () =>{
@@ -81,9 +86,9 @@ export default function Typing() {
             })
             const progressIncrement = 1/numWords*100
             console.log(data[0][3] + progressIncrement)
-
         }
-    }, [wordProgress]);
+    }, [wordProgress]);  
+    console.log(loadCount)
     function createObject() {
         if (usernameList.length){
             for (var i = 0; i < infoListLength; i++) {
@@ -117,9 +122,6 @@ export default function Typing() {
         };
         }, [backSpaceCount]);
     }
-
-    //socket.emit('username',username)
-    //socket.on('usernameList',usernames)
     useEffect(() =>{
         
         if(currentWord){
@@ -163,17 +165,19 @@ export default function Typing() {
     },[letterTyped])
 
 
-    var loadCount = 0
     function handleClick() {
-        loadCount +=1
-        console.log(loadCount)
+        const SERVER = "http://127.0.0.1:5000";
+        var socket = socketClient (SERVER, {transports: ['websocket']});
+        var loadCount = 1
         setClassName([])
         setWordProgress(0)
         setInputValue('')
         setWordTyped(0)
-        const SERVER = "http://127.0.0.1:5000";
-        var socket = socketClient (SERVER, {transports: ['websocket']});
         socket.emit('loadCount', loadCount)
+        socket.on('vocabWords', vocabWords => {setVocabs(vocabWords)});
+        socket.on('disconnect', () =>{
+        socket.on('loadCount', loadCount => console.log(loadCount))
+        })
     }
     function handleStart(){
         window.location.reload();
@@ -190,31 +194,32 @@ export default function Typing() {
         setInputValue(e.target.value)
     }
         return (
-        
-        <div className="typingContainer">
-            {!started && <button id='start' onClick={handleStart}>Start Game</button>}
-            
-            <script src="typing.js" defer></script>
-            <canvas id="myCanvas" width="1px" height='1px'></canvas>
-            <div className="textBox" id='textBox'>
-                <div className="text-display" id= "textDisplay">
-                    {vocabs.map((word,index) => {return <span key={index} className={tempClass? tempClassList[index]: className[index]}>{word} </span>})}
+        <>  {currentRoom && <h1>{`Room: ${currentRoom}`}</h1>}
+            <div className="typingContainer">
+                {!started && <button id='start' onClick={handleStart}>Start Game</button>}
+                
+                <script src="typing.js" defer></script>
+                <canvas id="myCanvas" width="1px" height='1px'></canvas>
+                <div className="textBox" id='textBox'>
+                    <div className="text-display" id= "textDisplay">
+                        {vocabs.map((word,index) => {return <span key={index} className={tempClass? tempClassList[index]: className[index]}>{word} </span>})}
+                    </div>
                 </div>
+                
+                <input 
+                    type='text' 
+                    className="text-Input" 
+                    id="textInput" 
+                    autoFocus
+                    value={inputValue}
+                    onChange={handleChange}
+                ></input>
+                
+                <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
+                
+                <ProgressBar2 infoList={data} />
+                
             </div>
-            
-            <input 
-                type='text' 
-                className="text-Input" 
-                id="textInput" 
-                autoFocus
-                value={inputValue}
-                onChange={handleChange}
-            ></input>
-            
-            <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
-            
-            <ProgressBar2 infoList={data} />
-            
-        </div>
+        </>
     )
 }
