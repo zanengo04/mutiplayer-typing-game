@@ -205,7 +205,6 @@ export default function Typing() {
                         {vocabs.map((word,index) => {return <span key={index} className={tempClass? tempClassList[index]: className[index]}>{word} </span>})}
                     </div>
                 </div>
-                
                 <input 
                     type='text' 
                     className="text-Input" 
@@ -214,6 +213,7 @@ export default function Typing() {
                     value={inputValue}
                     onChange={handleChange}
                 ></input>
+                
                 
                 <button className="btn" id='reload' onClick={handleClick}><i className="fas fa-redo"></i></button>
                 

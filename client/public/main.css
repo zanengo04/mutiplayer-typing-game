@@ -134,3 +134,24 @@ h1{
 .button:hover{
   background-color: rgb(110, 182, 253);
 }
+
+@media only screen and (max-width: 900px) {
+  .textBox{
+    width: 600px;
+    margin: 0 auto;
+  }
+  .text-Input{
+    width: 500px;
+    margin: 0 auto;
+  }
+  .btn{
+    margin-left: 55px;
+    margin-top: 7px;
+  }
+  #formContainer{
+    flex-direction: column;
+  }
+  .makeStyles-root-1{
+    text-align: center;
+  }
+}

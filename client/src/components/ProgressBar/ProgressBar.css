@@ -5,3 +5,9 @@
     width: 900px;
     margin-top: 20px;
 }
+@media only screen and (max-width: 900px) {
+    .progressContainer{
+        width: 600px;
+        margin: 20px auto auto auto
+    }
+  }
